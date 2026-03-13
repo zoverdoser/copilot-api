@@ -15,6 +15,9 @@ export interface State {
   // Rate limiting configuration
   rateLimitSeconds?: number
   lastRequestTimestamp?: number
+
+  // Auth key for protecting chat/messages endpoints
+  authKey?: string
 }
 
 export const state: State = {

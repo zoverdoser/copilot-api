@@ -106,6 +106,7 @@ services:
       - "4141:4141"
     environment:
       - GH_TOKEN=your_github_token_here
+      - API_KEY=your_secret_key  # optional: enable API key authentication
     restart: unless-stopped
 ```
 
@@ -163,6 +164,7 @@ The following command line options are available for the `start` command:
 | --claude-code  | Generate a command to launch Claude Code with Copilot API config              | false      | -c    |
 | --show-token   | Show GitHub and Copilot tokens on fetch and refresh                           | false      | none  |
 | --proxy-env    | Initialize proxy from environment variables                                   | false      | none  |
+| --key          | API key to protect all endpoints (optional). See [API Key Authentication](#api-key-authentication) | none | -k |
 
 ### Auth Command Options
 
@@ -255,6 +257,49 @@ npx copilot-api@latest debug --json
 
 # Initialize proxy from environment variables (HTTP_PROXY, HTTPS_PROXY, etc.)
 npx copilot-api@latest start --proxy-env
+
+# Start with API key authentication
+npx copilot-api@latest start --key your-secret-key
+
+# Start with API key authentication (short form)
+npx copilot-api@latest start -k your-secret-key
+```
+
+## API Key Authentication
+
+When the server is started with `--key <secret>`, all endpoints (except `GET /` and `GET /usage`) require the caller to provide the matching key. This is useful when exposing the proxy on a shared or public network.
+
+### Providing the Key in Requests
+
+The key can be supplied in three ways (checked in this order):
+
+| Method | Example |
+| --- | --- |
+| `Authorization` header | `Authorization: Bearer your-secret-key` |
+| `key` query parameter | `?key=your-secret-key` |
+| `x-api-key` header | `x-api-key: your-secret-key` |
+
+If the key is missing or incorrect, the server returns `401 Unauthorized`.
+
+### Docker
+
+Pass the key via the `API_KEY` environment variable:
+
+```sh
+docker run -p 4141:4141 -e GH_TOKEN=your_token -e API_KEY=your_secret_key copilot-api
+```
+
+### Claude Code with API Key
+
+When using `--key`, set `ANTHROPIC_AUTH_TOKEN` to your key so Claude Code sends it automatically:
+
+```json
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:4141",
+    "ANTHROPIC_AUTH_TOKEN": "your-secret-key"
+  }
+}
 ```
 
 ## Using the Usage Viewer

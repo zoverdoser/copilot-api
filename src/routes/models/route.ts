@@ -1,5 +1,6 @@
 import { Hono } from "hono"
 
+import { validateKey } from "~/lib/auth-key"
 import { forwardError } from "~/lib/error"
 import { state } from "~/lib/state"
 import { cacheModels } from "~/lib/utils"
@@ -7,6 +8,8 @@ import { cacheModels } from "~/lib/utils"
 export const modelRoutes = new Hono()
 
 modelRoutes.get("/", async (c) => {
+  const authError = validateKey(c)
+  if (authError) return authError
   try {
     if (!state.models) {
       // This should be handled by startup logic, but as a fallback.

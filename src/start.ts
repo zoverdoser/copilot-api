@@ -25,6 +25,7 @@ interface RunServerOptions {
   claudeCode: boolean
   showToken: boolean
   proxyEnv: boolean
+  key?: string
 }
 
 export async function runServer(options: RunServerOptions): Promise<void> {
@@ -46,6 +47,11 @@ export async function runServer(options: RunServerOptions): Promise<void> {
   state.rateLimitSeconds = options.rateLimit
   state.rateLimitWait = options.rateLimitWait
   state.showToken = options.showToken
+
+  if (options.key) {
+    state.authKey = options.key
+    consola.info("API key authentication enabled")
+  }
 
   await ensurePaths()
   await cacheVSCodeVersion()
@@ -184,6 +190,12 @@ export const start = defineCommand({
       default: false,
       description: "Initialize proxy from environment variables",
     },
+    key: {
+      alias: "k",
+      type: "string",
+      description:
+        "API key to protect chat/messages endpoints (optional). If set, requests must provide this key via Authorization: Bearer <key>, ?key=<key> query param, or x-api-key header",
+    },
   },
   run({ args }) {
     const rateLimitRaw = args["rate-limit"]
@@ -202,6 +214,7 @@ export const start = defineCommand({
       claudeCode: args["claude-code"],
       showToken: args["show-token"],
       proxyEnv: args["proxy-env"],
+      key: args.key,
     })
   },
 })
